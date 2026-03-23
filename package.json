@@ -1,0 +1,19 @@
+{
+  "name": "wamy-bourse",
+  "version": "1.0.0",
+  "description": "WAMY — Bourse de Casablanca tracker",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  },
+  "scripts": {
+    "dev":    "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAMY — Bourse de Casablanca</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+
+  <!-- ══════════ HEADER ══════════ -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">W</div>
+      <div class="logo-text">WAMY</div>
+    </div>
+    <div class="header-center">
+      <div class="market-timer" id="market-timer">
+        <span class="market-dot" id="market-dot"></span>
+        <span class="market-status" id="market-status">—</span>
+        <span class="market-time" id="market-time"></span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="btn-icon" onclick="showPage('search')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <div class="theme-toggle-knob">
+          <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        </div>
+      </div>
+      <button class="btn-login" onclick="showLoginModal()">Connexion</button>
+    </div>
+  </div>
+
+  <!-- ══════════ NAV TABS ══════════ -->
+  <div class="nav-tabs" id="nav-tabs">
+    <div class="tab active" onclick="setTab(this,'top')"><span class="tab-dot"></span> Top</div>
+    <div class="tab" onclick="setTab(this,'tendances')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Tendances
+    </div>
+    <div class="tab" onclick="setTab(this,'hausses')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg> Hausses
+    </div>
+    <div class="tab" onclick="setTab(this,'baisses')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg> Baisses
+    </div>
+    <div class="tab" onclick="setTab(this,'rendement')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Rendement
+    </div>
+  </div>
+
+  <!-- ══════════ PAGES WRAPPER ══════════ -->
+  <div class="pages-wrapper">
+
+  <!-- ══════════ PAGE: MARCHÉ ══════════ -->
+  <div class="page active" id="page-marche">
+    <div class="content">
+
+      <div class="masi-card fade-in">
+        <div class="masi-label"><span class="pulse"></span> MASI INDEX</div>
+        <div class="masi-value">17 243,58</div>
+        <div class="masi-change">
+          <span class="change-neg"><span class="arrow-icon">▼</span> -1,53%</span>
+          <span class="masi-meta">Vol 429M · Cap 963B MAD</span>
+        </div>
+        <div class="mini-chart">
+          <svg viewBox="0 0 300 50" preserveAspectRatio="none">
+            <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f43f5e" stop-opacity="0.3"/><stop offset="100%" stop-color="#f43f5e" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0,20 C20,18 40,25 60,30 C80,35 100,38 120,32 C140,26 160,35 180,40 C200,44 220,38 240,30 C260,22 280,28 300,24" fill="none" stroke="#f43f5e" stroke-width="2"/>
+            <path d="M0,20 C20,18 40,25 60,30 C80,35 100,38 120,32 C140,26 160,35 180,40 C200,44 220,38 240,30 C260,22 280,28 300,24 L300,50 L0,50Z" fill="url(#chartGrad)"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="stats-row fade-in">
+        <div class="stat-card"><div class="stat-value green" id="stat-hausses">28</div><div class="stat-label">HAUSSES</div></div>
+        <div class="stat-card"><div class="stat-value red" id="stat-baisses">42</div><div class="stat-label">BAISSES</div></div>
+        <div class="stat-card"><div class="stat-value gray" id="stat-stables">8</div><div class="stat-label">STABLE</div></div>
+      </div>
+
+      <div class="summary-row fade-in">
+        <div class="summary-card"><div class="summary-card-label">CAPITALISATION</div><div class="summary-card-value">963B MAD</div></div>
+        <div class="summary-card"><div class="summary-card-label">VOLUME</div><div class="summary-card-value">429M MAD</div></div>
+      </div>
+
+      <div class="fear-card fade-in">
+        <div>
+          <div class="fear-title">FEAR &amp; GREED</div>
+          <div style="display:flex;align-items:flex-end;gap:8px;margin-top:6px;">
+            <div style="font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--red);">16</div>
+            <div style="padding-bottom:4px;"><div class="fear-level">Peur Extrême</div></div>
+          </div>
+          <svg width="100" height="54" viewBox="0 0 100 54" style="margin-top:4px;">
+            <defs><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="40%" stop-color="#f5c842"/><stop offset="100%" stop-color="#34d378"/></linearGradient></defs>
+            <path d="M10,50 A40,40 0 0,1 90,50" fill="none" stroke="url(#gg)" stroke-width="8" stroke-linecap="round"/>
+            <line x1="50" y1="50" x2="17" y2="30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="50" cy="50" r="4" fill="var(--bg2)" stroke="#fff" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div style="flex:1;"></div>
+        <div class="rsi-box">
+          <div class="rsi-label">RSI MOYEN</div>
+          <div class="rsi-val">45,54</div>
+          <div style="margin-top:6px;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">Survendu→Suracheté</div>
+          <div style="width:80px;height:6px;background:linear-gradient(90deg,#f43f5e,#f5c842,#34d378);border-radius:3px;margin-top:6px;position:relative;">
+            <div style="position:absolute;top:-2px;left:43%;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--bg);transform:translateX(-50%);"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Actions
+        </div>
+        <div class="section-action">78 actions</div>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-chip active" onclick="filterStocks('all',this)">Tous</div>
+        <div class="filter-chip" onclick="filterStocks('banques',this)">Banques</div>
+        <div class="filter-chip" onclick="filterStocks('assurances',this)">Assurances</div>
+        <div class="filter-chip" onclick="filterStocks('mines',this)">Mines</div>
+        <div class="filter-chip" onclick="filterStocks('batiment',this)">Bâtiment</div>
+        <div class="filter-chip" onclick="filterStocks('energie',this)">Énergie</div>
+        <div class="filter-chip" onclick="filterStocks('telecom',this)">Télécom</div>
+        <div class="filter-chip" onclick="filterStocks('agroalimentaire',this)">Agro</div>
+        <div class="filter-chip" onclick="filterStocks('transport',this)">Transport</div>
+        <div class="filter-chip" onclick="filterStocks('immobilier',this)">Immobilier</div>
+        <div class="filter-chip" onclick="filterStocks('distribution',this)">Auto</div>
+        <div class="filter-chip" onclick="filterStocks('industrie',this)">Industrie</div>
+        <div class="filter-chip" onclick="filterStocks('sante',this)">Santé</div>
+        <div class="filter-chip" onclick="filterStocks('holding',this)">Holding</div>
+      </div>
+
+      <div class="stock-table" id="stock-table"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE: OUTILS ══════════ -->
+  <div class="page" id="page-outils">
+    <div class="outils-content">
+      <div style="padding-top:8px;">
+        <div class="page-title">Outils</div>
+        <div class="page-sub">Calculateurs et analyses pour votre investissement</div>
+      </div>
+      <div class="calc-card">
+        <div class="calc-section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+          Calculateur de Coût
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:16px;font-family:'JetBrains Mono',monospace;">Estimez le coût total incluant les frais bancaires</div>
+        <div id="calc-selected-badge" style="display:none;align-items:center;gap:8px;padding:10px 12px;background:var(--green-dim);border:1px solid var(--border2);border-radius:10px;margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2);"></div>
+        <div class="input-group">
+          <div class="input-label">Prix de l'action <span class="input-badge">MAD</span></div>
+          <input type="number" class="calc-input" id="calc-price" placeholder="ex: 692.00" oninput="calculateCost()" inputmode="decimal">
+        </div>
+        <div class="input-group">
+          <div class="input-label">Nombre d'actions <span class="input-badge">QTÉ</span></div>
+          <input type="number" class="calc-input" id="calc-qty" placeholder="ex: 10" oninput="calculateCost()" inputmode="numeric">
+        </div>
+        <div class="input-group" style="margin-top:4px;">
+          <div class="input-label">Frais courtier <span class="input-badge">%</span></div>
+          <div class="broker-fee-row">
+            <div class="broker-btn active" onclick="setBrokerFee(0.6,this)">0.6%</div>
+            <div class="broker-btn" onclick="setBrokerFee(0.8,this)">0.8%</div>
+            <div class="broker-btn" onclick="setBrokerFee(1.0,this)">1.0%</div>
+            <input type="number" class="calc-input broker-custom" id="broker-fee-custom" placeholder="%" oninput="setBrokerFeeCustom(this)" inputmode="decimal" step="0.1" min="0" max="5">
+          </div>
+          <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:6px;">+ TVA 10% + Taxes Bourse/Maroclear ~0.1%</div>
+        </div>
+        <div class="formula-box" id="formula-display">
+          Prix × Qté + <strong id="fee-label">0.6%</strong> frais <span>=</span> Total
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="calc-section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Résultat du Calcul
+        </div>
+        <div class="result-empty" id="result-empty">
+          <div style="font-size:32px;">🧮</div>
+          <div>Entrez un prix et une quantité<br>pour calculer votre coût</div>
+        </div>
+        <div class="result-content" id="result-content">
+          <div class="result-row">
+            <span class="result-key">Sous-total brut</span>
+            <span class="result-val" id="res-subtotal" style="color:#f5c842;">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-key" id="fees-label-result">Frais courtier</span>
+            <span class="result-val" style="color:var(--red)" id="res-fees">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-key">Prix unitaire</span>
+            <span class="result-val" id="res-unit">—</span>
+          </div>
+          <div class="result-row" style="margin-top:8px;padding-top:12px;border-top:1px solid var(--border2);">
+            <span class="result-key" style="color:var(--text);font-weight:700;font-size:13px;">TOTAL À PAYER</span>
+            <span class="result-val total" id="res-total">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Référence Rapide
+        </div>
+        <div class="section-action" id="qr-count">78 actions</div>
+      </div>
+
+      <div class="qr-search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="qr-search" placeholder="Chercher… nom, ticker, secteur" oninput="renderQuickRef()" autocomplete="off">
+        <div class="qr-clear" id="qr-clear" onclick="clearQrSearch()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+      </div>
+      <div class="qr-strip" id="quick-ref"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE: SEARCH ══════════ -->
+  <div class="page" id="page-search">
+    <div class="search-content">
+      <div style="padding-top:8px;">
+        <div class="page-title">Rechercher</div>
+        <div class="page-sub">78 sociétés cotées à la Bourse de Casablanca</div>
+      </div>
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Nom, ticker ou secteur (ex: ATW, Banques...)" oninput="searchStocks()">
+      </div>
+      <div class="stock-table" id="search-results"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE: DIVIDENDES ══════════ -->
+  <div class="page" id="page-dividendes">
+    <div class="div-content">
+      <div style="padding-top:8px;">
+        <div class="page-title">Dividendes</div>
+        <div class="page-sub">Rendement des actions de la Bourse de Casablanca</div>
+      </div>
+      <div class="div-summary-row">
+        <div class="div-sum-card"><div class="div-sum-label">PLUS HAUT</div><div class="div-sum-val" id="div-highest" style="color:var(--green);">—</div><div class="div-sum-ticker" id="div-highest-name">—</div></div>
+        <div class="div-sum-card"><div class="div-sum-label">PLUS BAS</div><div class="div-sum-val" id="div-lowest" style="color:var(--red);">—</div><div class="div-sum-ticker" id="div-lowest-name">—</div></div>
+        <div class="div-sum-card"><div class="div-sum-label">MOY. MARCHÉ</div><div class="div-sum-val" id="div-avg" style="color:#f5c842;">—</div></div>
+      </div>
+      <div class="qr-search-wrap" style="margin-bottom:12px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="div-search" placeholder="Chercher une action…" oninput="renderDivList()" autocomplete="off">
+        <div class="qr-clear" onclick="document.getElementById('div-search').value='';renderDivList();">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+      </div>
+      <div class="div-sort-row">
+        <div class="div-sort-btn active" id="btn-yield" onclick="toggleYieldSort(this)">Rendement ↓</div>
+        <div class="div-sort-btn" onclick="sortDiv('div',this)">Dividende</div>
+        <div class="div-sort-btn" onclick="sortDiv('price',this)">Prix</div>
+        <div class="div-sort-btn" onclick="sortDiv('name',this)">Nom A-Z</div>
+      </div>
+      <div id="div-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE: PORTFOLIO ══════════ -->
+  <div class="page" id="page-portfolio">
+    <div class="portfolio-content">
+      <div style="padding-top:8px;">
+        <div class="page-title">Mon Portfolio</div>
+        <div class="page-sub">Suivez vos investissements</div>
+      </div>
+      <div class="login-prompt">
+        <div class="login-icon">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--green)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="login-title">Connectez-vous pour accéder à votre portfolio</div>
+        <div class="login-sub">Suivez vos actions, performances et dividendes en temps réel. Synchronisé avec votre compte Google.</div>
+        <button class="btn-google" onclick="showLoginModal()">
+          <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continuer avec Google
+        </button>
+      </div>
+      <div class="fav-section">
+        <div class="fav-header">
+          <div class="fav-title-wrap">
+            <div class="fav-star-glow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#f5c842" stroke="#f5c842" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="fav-title">Mes Favoris</span>
+            <span class="fav-count" id="fav-count">0</span>
+          </div>
+          <span class="fav-hint">Appuyez sur ☆ pour ajouter</span>
+        </div>
+        <div id="watchlist-container"></div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end .pages-wrapper -->
+
+</div><!-- end .shell -->
+
+<!-- ══════════ BOTTOM NAV — outside shell, fixed to viewport ══════════ -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="nav-marche" onclick="showPage('marche')">
+    <div class="nav-indicator"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+    <span>Marché</span>
+  </div>
+  <div class="nav-item" id="nav-search" onclick="showPage('search')">
+    <div class="nav-indicator"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <span>Chercher</span>
+  </div>
+  <div class="nav-item" id="nav-outils" onclick="showPage('outils')">
+    <div class="nav-indicator"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span>Outils</span>
+  </div>
+  <div class="nav-item" id="nav-dividendes" onclick="showPage('dividendes')">
+    <div class="nav-indicator"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>Dividendes</span>
+  </div>
+  <div class="nav-item" id="nav-portfolio" onclick="showPage('portfolio')">
+    <div class="nav-indicator"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+    <span>Portfolio</span>
+  </div>
+</nav>
+
+<!-- ══════════ STOCK DETAIL MODAL ══════════ -->
+<div class="modal-overlay" id="stock-modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-avatar" id="modal-avatar"></div>
+      <div class="modal-title">
+        <div class="modal-name" id="modal-name"></div>
+        <div class="modal-ticker" id="modal-ticker"></div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;text-align:right;">SÉANCE FERMÉE</div>
+        <div id="modal-change" style="display:flex;justify-content:flex-end;font-size:16px;font-weight:800;margin-top:2px;"></div>
+      </div>
+    </div>
+    <div class="modal-price-big" id="modal-price"></div>
+    <div class="modal-stats" id="modal-stats"></div>
+    <button class="modal-close" onclick="document.getElementById('stock-modal').classList.remove('open')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:6px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Fermer
+    </button>
+  </div>
+</div>
+
+<!-- ══════════ LOGIN MODAL ══════════ -->
+<div class="modal-overlay" id="login-modal" onclick="closeLoginModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:16px 0;">
+      <div style="margin-bottom:12px;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--green)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:8px;">Connexion</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6;">Accédez à votre portfolio, vos alertes et vos analyses personnalisées</div>
+      <button class="btn-google" onclick="signInWithGoogle()">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continuer avec Google
+      </button>
+      <div style="margin-top:16px;font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">Sécurisé · Données privées · Aucune publicité</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TOAST ══════════ -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>
+
