@@ -1,0 +1,22 @@
+# Secrets — NEVER commit these
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db

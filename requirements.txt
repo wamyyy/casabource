@@ -1,0 +1,7 @@
+BVCscrap==0.0.4
+pandas>=1.5.0
+supabase>=2.0.0
+python-dotenv>=1.0.0
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+lxml>=4.9.0
