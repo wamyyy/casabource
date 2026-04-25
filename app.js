@@ -1,28 +1,15 @@
 /* ════════════════════════════════════════════════════════
    WAMY — Bourse de Casablanca
-   app.js v2.0 — Full Supabase Integration
-   Features: Live data · Auth · Watchlist · Dark/Light
-             Market Timer · Accurate Calculator · LocalStorage
+   app.js — Pure Frontend (no backend, no Supabase, no auth)
+   Data source: STOCKS array below (replace with your API call)
 ════════════════════════════════════════════════════════ */
 
 // ══════════════════════════════════════════
-// 1. SUPABASE CONFIG
+// 1. STOCK DATA
+// Replace this array with your real data source
+// e.g. fetch('/api/stocks').then(r => r.json()).then(data => { STOCKS = data; applyFilter(); })
 // ══════════════════════════════════════════
-const SUPABASE_URL  = 'https://uvxrsdybplnndwuzixef.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2eHJzZHlicGxubmR3dXppeGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxOTA1NjQsImV4cCI6MjA4OTc2NjU2NH0.IFYjRpQLgWDcXLLZTV168sfhYRng17sgVQ-IKZLHTBU';
-
-// Supabase JS client (loaded via CDN in index.html)
-let _sb = null;
-function getSB() {
-  if (!_sb) _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-  return _sb;
-}
-
-// ══════════════════════════════════════════
-// 2. FALLBACK STATIC DATA (78 companies)
-// Used when Supabase has no data yet
-// ══════════════════════════════════════════
-const STATIC_STOCKS = [
+const STOCKS = [
   // BANQUES
   { rank:1,  name:'Attijariwafa Bank',    ticker:'ATW',  sector:'banques',         price:692,    change:-3.20, vol:'50.23M', ytd:-7.10,  cap:'149.0B', div:34.5,  divYield:4.99, divFreq:'Annuel', divDate:'Mai 2025',  domain:'attijariwafabank.ma' },
   { rank:2,  name:'Bank Of Africa',       ticker:'BOA',  sector:'banques',         price:219.5,  change:+0.23, vol:'47.32M', ytd:-4.57,  cap:'48.4B',  div:9.0,   divYield:4.10, divFreq:'Annuel', divDate:'Mai 2025',  domain:'bankofafrica.ma' },
@@ -118,7 +105,7 @@ const STATIC_STOCKS = [
 ];
 
 // ══════════════════════════════════════════
-// 3. LOGO SYSTEM
+// 2. LOGO SYSTEM
 // ══════════════════════════════════════════
 const AVATAR_BG = {
   banques:'1d4ed8', mines:'92400e', batiment:'c2410c', energie:'b45309',
@@ -127,69 +114,20 @@ const AVATAR_BG = {
   industrie:'1e40af', sante:'166534', holding:'581c87'
 };
 
-const LOGO_URLS = {
-  'ATW':'https://upload.wikimedia.org/wikipedia/fr/thumb/5/5b/Attijariwafa_bank_logo.svg/240px-Attijariwafa_bank_logo.svg.png',
-  'BOA':'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Bank_of_Africa_logo.svg/240px-Bank_of_Africa_logo.svg.png',
-  'BCP':'https://upload.wikimedia.org/wikipedia/fr/thumb/b/b5/Banque_Centrale_Populaire_logo.svg/240px-Banque_Centrale_Populaire_logo.svg.png',
-  'BMCI':'https://upload.wikimedia.org/wikipedia/fr/thumb/4/47/BMCI_logo.svg/240px-BMCI_logo.svg.png',
-  'CIH':'https://upload.wikimedia.org/wikipedia/fr/thumb/e/e2/CIH_Bank_logo.svg/240px-CIH_Bank_logo.svg.png',
-  'CDM':'https://upload.wikimedia.org/wikipedia/fr/thumb/8/8e/Cr%C3%A9dit_du_Maroc_logo.svg/240px-Cr%C3%A9dit_du_Maroc_logo.svg.png',
-  'ATL':'https://upload.wikimedia.org/wikipedia/fr/thumb/2/2e/Atlanta_Sanad_logo.svg/240px-Atlanta_Sanad_logo.svg.png',
-  'SAH':'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Sanlam_logo.svg/240px-Sanlam_logo.svg.png',
-  'WAA':'https://upload.wikimedia.org/wikipedia/fr/thumb/c/c3/Wafa_Assurance_logo.svg/240px-Wafa_Assurance_logo.svg.png',
-  'MNG':'https://upload.wikimedia.org/wikipedia/fr/thumb/d/d3/Managem_logo.svg/240px-Managem_logo.svg.png',
-  'SID':'https://upload.wikimedia.org/wikipedia/fr/thumb/0/04/Sonasid_logo.svg/240px-Sonasid_logo.svg.png',
-  'CMA':'https://upload.wikimedia.org/wikipedia/fr/thumb/0/05/Ciments_du_Maroc_logo.svg/240px-Ciments_du_Maroc_logo.svg.png',
-  'LHM':'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Holcim_logo.svg/240px-Holcim_logo.svg.png',
-  'TGC':'https://upload.wikimedia.org/wikipedia/fr/thumb/e/ec/TGCC_logo.svg/240px-TGCC_logo.svg.png',
-  'TQM':'https://upload.wikimedia.org/wikipedia/fr/thumb/5/5f/Taqa_Morocco_logo.svg/240px-Taqa_Morocco_logo.svg.png',
-  'TMA':'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/TotalEnergies_logo.svg/240px-TotalEnergies_logo.svg.png',
-  'GAZ':'https://upload.wikimedia.org/wikipedia/fr/thumb/3/36/Afriquia_Gaz_logo.svg/240px-Afriquia_Gaz_logo.svg.png',
-  'IAM':'https://upload.wikimedia.org/wikipedia/fr/thumb/9/9d/Maroc_T%C3%A9l%C3%A9com_logo.svg/240px-Maroc_T%C3%A9l%C3%A9com_logo.svg.png',
-  'CSR':'https://upload.wikimedia.org/wikipedia/fr/thumb/4/43/Cosumar_logo.svg/240px-Cosumar_logo.svg.png',
-  'LBV':'https://upload.wikimedia.org/wikipedia/fr/thumb/c/c5/Label_Vie_logo.svg/240px-Label_Vie_logo.svg.png',
-  'LES':'https://upload.wikimedia.org/wikipedia/fr/thumb/5/58/Lesieur_Cristal_logo.svg/240px-Lesieur_Cristal_logo.svg.png',
-  'OUL':'https://upload.wikimedia.org/wikipedia/fr/thumb/0/03/Oulm%C3%A8s_logo.svg/240px-Oulm%C3%A8s_logo.svg.png',
-  'MSA':'https://upload.wikimedia.org/wikipedia/fr/thumb/4/4f/Marsa_Maroc_logo.svg/240px-Marsa_Maroc_logo.svg.png',
-  'CTM':'https://upload.wikimedia.org/wikipedia/fr/thumb/6/6e/CTM_%28Maroc%29_logo.svg/240px-CTM_%28Maroc%29_logo.svg.png',
-  'ADH':'https://upload.wikimedia.org/wikipedia/fr/thumb/1/17/Addoha_logo.svg/240px-Addoha_logo.svg.png',
-  'ATH':'https://upload.wikimedia.org/wikipedia/fr/thumb/7/7a/Auto_Hall_logo.svg/240px-Auto_Hall_logo.svg.png',
-  'AKT':'https://upload.wikimedia.org/wikipedia/fr/thumb/e/e9/Akdital_logo.svg/240px-Akdital_logo.svg.png',
-  'SOT':'https://upload.wikimedia.org/wikipedia/fr/thumb/b/b2/Sothema_logo.svg/240px-Sothema_logo.svg.png',
-  'RIS':'https://upload.wikimedia.org/wikipedia/fr/thumb/9/9d/Risma_logo.svg/240px-Risma_logo.svg.png',
-};
-
-function logoHTML(ticker, domain, sector, size = 34) {
-  const color     = getSectorColor(sector);
-  const bg        = AVATAR_BG[sector] || '15803d';
-  const br        = size <= 28 ? '8px' : '9px';
-  const letters   = ticker.replace(/[^A-Z0-9]/g,'').slice(0,3) || ticker.slice(0,2).toUpperCase();
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(letters)}&background=${bg}&color=ffffff&size=128&bold=true&font-size=0.4`;
-  const logoUrl   = LOGO_URLS[ticker];
-  const realTag   = logoUrl
-    ? `<img src="${logoUrl}" class="company-logo real-logo" alt="${ticker}"
-           style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:4px;"
-           onload="swapToRealLogo(this)" onerror="this.remove()">`
-    : '';
+function logoHTML(ticker, sector, size = 34) {
+  const bg      = AVATAR_BG[sector] || '15803d';
+  const br      = size <= 28 ? '8px' : '9px';
+  const letters = ticker.replace(/[^A-Z0-9]/g,'').slice(0,3) || ticker.slice(0,2).toUpperCase();
+  const url     = `https://ui-avatars.com/api/?name=${encodeURIComponent(letters)}&background=${bg}&color=ffffff&size=128&bold=true&font-size=0.4`;
+  const color   = getSectorColor(sector);
   return `<div class="stock-avatar logo-wrap ${color}" style="width:${size}px;height:${size}px;border-radius:${br};">
-    <img src="${avatarUrl}" class="company-logo avatar-visible" alt="${ticker}">
-    ${realTag}
+    <img src="${url}" class="company-logo avatar-visible" alt="${ticker}">
   </div>`;
 }
 
-function swapToRealLogo(img) {
-  if (img.naturalWidth <= 16 && img.naturalHeight <= 16) { img.remove(); return; }
-  const wrap = img.parentElement;
-  const av   = wrap.querySelector('.avatar-visible');
-  if (av) av.style.display = 'none';
-  img.style.display = 'block';
-  wrap.classList.add('has-logo');
-}
-
 // ══════════════════════════════════════════
-// 4. APP STATE
+// 3. APP STATE
 // ══════════════════════════════════════════
-let STOCKS        = [...STATIC_STOCKS]; // overwritten by Supabase data
 let currentFilter = 'all';
 let currentTab    = 'top';
 let watchlist     = new Set();
@@ -198,10 +136,9 @@ let yieldAsc      = false;
 let isLight       = false;
 let currentPage   = 'marche';
 let brokerFeeRate = 0.006;
-let currentUser   = null;
 let isAnimating   = false;
 
-const PAGES = ['marche','search','outils','dividendes','portfolio'];
+const PAGES = ['marche','search','outils','dividendes','favoris'];
 
 const SECTOR_LABELS = {
   banques:'Banques', mines:'Mines', batiment:'Bâtiment', energie:'Énergie',
@@ -218,196 +155,38 @@ function getSectorLabel(s) { return SECTOR_LABELS[s] || s; }
 function getSectorColor(s)  { return SECTOR_COLORS[s] || 'c1'; }
 
 // ══════════════════════════════════════════
-// 5. SUPABASE DATA LOADING
+// 4. WATCHLIST — localStorage only
 // ══════════════════════════════════════════
-async function loadLiveData() {
-  try {
-    const sb = getSB();
-
-    // Fetch latest prices view
-    const { data, error } = await sb
-      .from('latest_prices')
-      .select('*')
-      .order('rank', { ascending: true });
-
-    if (error || !data || data.length === 0) {
-      console.warn('Supabase: no live data, using static fallback');
-      showToast('📊 Données statiques — configurez la BDD');
-      return;
-    }
-
-    // Map DB rows → app format
-    STOCKS = data.map(r => ({
-      rank:     r.rank     || 99,
-      name:     r.name,
-      ticker:   r.ticker,
-      sector:   r.sector,
-      price:    parseFloat(r.price)      || 0,
-      change:   parseFloat(r.change)     || 0,
-      vol:      r.vol                    || '—',
-      ytd:      parseFloat(r.ytd)        || 0,
-      cap:      r.cap                    || '—',
-      div:      parseFloat(r.div)        || 0,
-      divYield: parseFloat(r.div_yield)  || 0,
-      divFreq:  r.div_freq               || 'Annuel',
-      divDate:  r.div_date               || '—',
-      domain:   r.domain                 || null,
-    }));
-
-    // Re-render everything with live data
-    applyFilter();
-    renderDivList();
-    renderQuickRef();
-    if (currentPage === 'search') searchStocks();
-
-    // Load MASI
-    const { data: masi } = await sb
-      .from('masi_index')
-      .select('*')
-      .eq('index_name', 'MASI')
-      .order('trade_date', { ascending: false })
-      .limit(1);
-
-    if (masi && masi[0]) updateMASICard(masi[0]);
-
-    console.log(`✅ Live data loaded: ${STOCKS.length} stocks`);
-    showToast(`✅ ${STOCKS.length} actions · Données live`);
-
-  } catch (err) {
-    console.error('Supabase load error:', err.message);
-    showToast('⚠️ Mode hors-ligne');
-  }
-}
-
-function updateMASICard(m) {
-  const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-  const masiVal = document.querySelector('.masi-value');
-  if (masiVal) masiVal.textContent = parseFloat(m.value).toLocaleString('fr-FR', {minimumFractionDigits:2});
-  const masiChg = document.querySelector('.masi-change .change-neg, .masi-change .change-pos');
-  if (masiChg) {
-    const up = parseFloat(m.change_pct) >= 0;
-    masiChg.className = up ? 'change-pos' : 'change-neg';
-    masiChg.innerHTML = `<span class="arrow-icon">${up?'▲':'▼'}</span> ${Math.abs(m.change_pct).toFixed(2)}%`;
-  }
-  const meta = document.querySelector('.masi-meta');
-  if (meta) meta.textContent = `Vol ${m.volume} · Cap ${m.cap} MAD`;
-  // Stats
-  set('stat-hausses', m.hausses);
-  set('stat-baisses', m.baisses);
-  set('stat-stables', m.stables);
-}
-
-// ══════════════════════════════════════════
-// 6. AUTH — Google Sign In via Supabase
-// ══════════════════════════════════════════
-async function signInWithGoogle() {
-  try {
-    const sb = getSB();
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin }
-    });
-    if (error) showToast('❌ Erreur connexion: ' + error.message);
-  } catch(e) {
-    showToast('❌ ' + e.message);
-  }
-}
-
-async function signOut() {
-  const sb = getSB();
-  await sb.auth.signOut();
-  currentUser = null;
-  watchlist   = new Set();
-  updateAuthUI();
-  renderWatchlist();
-  showToast('👋 Déconnecté');
-}
-
-function updateAuthUI() {
-  const btns = document.querySelectorAll('.btn-login');
-  btns.forEach(b => b.textContent = currentUser ? 'Mon Compte' : 'Connexion');
-  const prompt = document.querySelector('.login-prompt');
-  if (prompt) prompt.style.display = currentUser ? 'none' : 'block';
-}
-
-function setupAuth() {
-  const sb = getSB();
-  sb.auth.onAuthStateChange(async (event, session) => {
-    currentUser = session?.user || null;
-    updateAuthUI();
-
-    if (currentUser) {
-      // Load cloud watchlist
-      const { data } = await sb
-        .from('watchlist')
-        .select('ticker')
-        .eq('user_id', currentUser.id);
-      if (data) {
-        watchlist = new Set(data.map(r => r.ticker));
-        saveWatchlistLocal();
-      }
-      renderWatchlist();
-      applyFilter();
-      showToast(`👋 Bienvenue ${currentUser.email?.split('@')[0] || ''}`);
-    }
-  });
-
-  // Check current session on load
-  sb.auth.getSession().then(({ data: { session } }) => {
-    currentUser = session?.user || null;
-    updateAuthUI();
-  });
-}
-
-// ══════════════════════════════════════════
-// 7. WATCHLIST — localStorage + Supabase sync
-// ══════════════════════════════════════════
-function saveWatchlistLocal() {
+function saveWatchlist() {
   try { localStorage.setItem('wamy_watchlist', JSON.stringify([...watchlist])); } catch(e){}
 }
-
-function loadWatchlistLocal() {
+function loadWatchlist() {
   try {
     const saved = localStorage.getItem('wamy_watchlist');
     if (saved) watchlist = new Set(JSON.parse(saved));
   } catch(e){}
 }
 
-async function syncWatchlistToCloud(ticker, add) {
-  if (!currentUser) return;
-  const sb = getSB();
-  try {
-    if (add) {
-      await sb.from('watchlist').upsert({ user_id: currentUser.id, ticker }, { onConflict: 'user_id,ticker' });
-    } else {
-      await sb.from('watchlist').delete()
-        .eq('user_id', currentUser.id).eq('ticker', ticker);
-    }
-  } catch(e) { console.warn('Watchlist sync error:', e.message); }
-}
-
-async function toggleStar(e, ticker) {
-  if(e) e.stopPropagation();
+function toggleStar(e, ticker) {
+  if (e) e.stopPropagation();
   const adding = !watchlist.has(ticker);
-  if (adding) { watchlist.add(ticker); showToast('⭐ Ajouté — ' + ticker); }
+  if (adding) { watchlist.add(ticker);    showToast('⭐ Ajouté — ' + ticker); }
   else         { watchlist.delete(ticker); showToast('Retiré — ' + ticker); }
-  saveWatchlistLocal();
-  await syncWatchlistToCloud(ticker, adding);
+  saveWatchlist();
   applyFilter();
-  if (currentPage === 'portfolio') renderWatchlist();
+  if (currentPage === 'favoris') renderWatchlist();
 }
 
-async function removeFav(ticker) {
+function removeFav(ticker) {
   watchlist.delete(ticker);
   showToast('Retiré — ' + ticker);
-  saveWatchlistLocal();
-  await syncWatchlistToCloud(ticker, false);
+  saveWatchlist();
   applyFilter();
   renderWatchlist();
 }
 
 // ══════════════════════════════════════════
-// 8. SPARKLINE
+// 5. SPARKLINE
 // ══════════════════════════════════════════
 function generateSparkline(change) {
   const up    = change >= 0;
@@ -422,7 +201,7 @@ function generateSparkline(change) {
 }
 
 // ══════════════════════════════════════════
-// 9. RENDER STOCKS
+// 6. RENDER STOCKS
 // ══════════════════════════════════════════
 function renderStocks(stocks, containerId) {
   const container = document.getElementById(containerId);
@@ -433,12 +212,12 @@ function renderStocks(stocks, containerId) {
   }
   container.innerHTML = stocks.map(s => {
     const up = s.change >= 0, dir = up ? 'up' : 'down';
-    const starred = watchlist.has(s.ticker);
+    const starred   = watchlist.has(s.ticker);
     const suspended = s.ticker === 'SAM';
     return `
       <div class="stock-row ${dir} fade-in${suspended?' suspended':''}" onclick="showStockModal('${s.ticker}')">
         <div class="stock-rank">${s.rank}</div>
-        ${logoHTML(s.ticker, s.domain, s.sector, 34)}
+        ${logoHTML(s.ticker, s.sector, 34)}
         <div class="stock-info">
           <div class="stock-name">${s.name}</div>
           <div class="stock-sector">${s.ticker} · ${getSectorLabel(s.sector)}</div>
@@ -446,7 +225,9 @@ function renderStocks(stocks, containerId) {
         <div class="stock-chart">${suspended ? '' : generateSparkline(s.change)}</div>
         <div class="stock-right">
           <div class="stock-price">${suspended ? '—' : s.price.toLocaleString('fr-FR')} <span style="font-size:10px;color:var(--text3);">MAD</span></div>
-          <div class="stock-change ${dir}">${suspended ? '<span style="color:var(--text3);font-size:10px;">Suspendu</span>' : `<span class="arrow-icon">${up?'▲':'▼'}</span> ${Math.abs(s.change).toFixed(2)}%`}</div>
+          <div class="stock-change ${dir}">${suspended
+            ? '<span style="color:var(--text3);font-size:10px;">Suspendu</span>'
+            : `<span class="arrow-icon">${up?'▲':'▼'}</span> ${Math.abs(s.change).toFixed(2)}%`}</div>
           <div style="display:flex;gap:4px;margin-top:2px;justify-content:flex-end;flex-wrap:wrap;">
             <div class="stock-cap">${s.cap}</div>
             ${s.divYield > 0 ? `<span class="div-badge">${s.divYield.toFixed(2)}%</span>` : ''}
@@ -468,13 +249,22 @@ function applyFilter() {
   else if (currentTab==='baisses')   stocks = stocks.filter(s=>s.change<0).sort((a,b)=>a.change-b.change);
   else if (currentTab==='tendances') stocks = [...stocks].sort((a,b)=>(parseFloat(b.vol)||0)-(parseFloat(a.vol)||0));
   else if (currentTab==='rendement') stocks = [...stocks].sort((a,b)=>b.ytd-a.ytd);
+
   renderStocks(stocks, 'stock-table');
-  const ca = document.querySelector('#page-marche .section-action');
-  if (ca) ca.textContent = stocks.length + ' actions';
+
+  // Update stats
+  const hausses = STOCKS.filter(s=>s.change>0).length;
+  const baisses = STOCKS.filter(s=>s.change<0).length;
+  const stables = STOCKS.filter(s=>s.change===0).length;
+  const set = (id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('stat-hausses', hausses);
+  set('stat-baisses', baisses);
+  set('stat-stables', stables);
+  set('stock-count', stocks.length + ' actions');
 }
 
 // ══════════════════════════════════════════
-// 10. PAGE NAVIGATION WITH SLIDE ANIMATION
+// 7. PAGE NAVIGATION
 // ══════════════════════════════════════════
 function showPage(page, forceDir) {
   if (!PAGES.includes(page) || page === currentPage || isAnimating) return;
@@ -486,13 +276,13 @@ function showPage(page, forceDir) {
   const incoming = document.getElementById('page-' + page);
   const outgoing = document.getElementById('page-' + currentPage);
 
-  if (page==='outils')     renderQuickRef();
-  if (page==='search')     searchStocks();
-  if (page==='dividendes') renderDivList();
-  if (page==='portfolio')  renderWatchlist();
+  if (page === 'outils')     renderQuickRef();
+  if (page === 'search')     searchStocks();
+  if (page === 'dividendes') renderDivList();
+  if (page === 'favoris')    renderWatchlist();
 
   const navTabs = document.getElementById('nav-tabs');
-  if (navTabs) navTabs.style.display = page==='marche' ? 'flex' : 'none';
+  if (navTabs) navTabs.style.display = page === 'marche' ? 'flex' : 'none';
 
   if (incoming) {
     incoming.style.transition = 'none';
@@ -518,44 +308,44 @@ function showPage(page, forceDir) {
 }
 
 // ══════════════════════════════════════════
-// 11. FILTERS & TABS
+// 8. FILTERS & TABS
 // ══════════════════════════════════════════
 function filterStocks(filter, el) {
   currentFilter = filter;
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-  if(el) el.classList.add('active');
+  if (el) el.classList.add('active');
   applyFilter();
 }
 function setTab(el, tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  if(el) el.classList.add('active');
+  if (el) el.classList.add('active');
   applyFilter();
 }
 
 // ══════════════════════════════════════════
-// 12. SEARCH
+// 9. SEARCH
 // ══════════════════════════════════════════
 function searchStocks() {
   const q = (document.getElementById('search-input')?.value||'').toLowerCase().trim();
-  const pool = q ? STOCKS.filter(s=>
-    s.name.toLowerCase().includes(q)||
-    s.ticker.toLowerCase().includes(q)||
+  const pool = q ? STOCKS.filter(s =>
+    s.name.toLowerCase().includes(q) ||
+    s.ticker.toLowerCase().includes(q) ||
     getSectorLabel(s.sector).toLowerCase().includes(q)
   ) : STOCKS;
   renderStocks(pool, 'search-results');
 }
 
 // ══════════════════════════════════════════
-// 13. CALCULATOR (Accurate Moroccan fees)
+// 10. CALCULATOR
 // ══════════════════════════════════════════
 function setBrokerFee(rate, el) {
   brokerFeeRate = rate / 100;
   document.querySelectorAll('.broker-btn').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
+  if (el) el.classList.add('active');
   document.getElementById('broker-fee-custom').value = '';
   const lbl = document.getElementById('fee-label');
-  if(lbl) lbl.textContent = rate + '%';
+  if (lbl) lbl.textContent = rate + '%';
   calculateCost();
 }
 function setBrokerFeeCustom(inp) {
@@ -564,7 +354,7 @@ function setBrokerFeeCustom(inp) {
     brokerFeeRate = v / 100;
     document.querySelectorAll('.broker-btn').forEach(b=>b.classList.remove('active'));
     const lbl = document.getElementById('fee-label');
-    if(lbl) lbl.textContent = v + '%';
+    if (lbl) lbl.textContent = v + '%';
     calculateCost();
   }
 }
@@ -576,52 +366,52 @@ function calculateCost() {
   if (!p||!q||isNaN(p)||isNaN(q)||p<=0||q<=0) {
     content?.classList.remove('show'); empty?.classList.remove('hide'); return;
   }
-  const sub      = p * q;
-  const courtier = sub * brokerFeeRate;
-  const tva      = courtier * 0.10;
-  const bourse   = sub * 0.001;
-  const total    = sub + courtier + tva + bourse;
+  const sub       = p * q;
+  const courtier  = sub * brokerFeeRate;
+  const tva       = courtier * 0.10;
+  const bourse    = sub * 0.001;
+  const total     = sub + courtier + tva + bourse;
   const totalFees = courtier + tva + bourse;
-  const feesPct  = (brokerFeeRate * 100).toFixed(2);
+  const feesPct   = (brokerFeeRate * 100).toFixed(2);
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
   set('res-subtotal', sub.toLocaleString('fr-FR',{minimumFractionDigits:2})+' MAD');
   set('res-fees',    '+'+totalFees.toLocaleString('fr-FR',{minimumFractionDigits:2})+' MAD');
   set('res-unit',    p.toLocaleString('fr-FR',{minimumFractionDigits:2})+' MAD');
   set('res-total',   total.toLocaleString('fr-FR',{minimumFractionDigits:2})+' MAD');
   const fl = document.getElementById('fees-label-result');
-  if(fl) fl.textContent = `Frais (${feesPct}% + TVA + Bourse)`;
+  if (fl) fl.textContent = `Frais (${feesPct}% + TVA + Bourse)`;
   content?.classList.add('show'); empty?.classList.add('hide');
 }
 
 function prefillCalc(price, ticker, evt) {
-  if(evt) evt.stopPropagation();
+  if (evt) evt.stopPropagation();
   const inp   = document.getElementById('calc-price');
   const badge = document.getElementById('calc-selected-badge');
-  if(inp) { inp.value=price; calculateCost(); }
-  if(badge) { badge.style.display='flex'; badge.innerHTML=`<strong style="color:var(--green);">${ticker}</strong><span style="color:var(--text3);">→</span>${Number(price).toLocaleString('fr-FR')} MAD`; }
+  if (inp) { inp.value=price; calculateCost(); }
+  if (badge) { badge.style.display='flex'; badge.innerHTML=`<strong style="color:var(--green);">${ticker}</strong><span style="color:var(--text3);">→</span>${Number(price).toLocaleString('fr-FR')} MAD`; }
   document.querySelectorAll('.qr-card').forEach(c=>c.classList.remove('selected'));
   document.querySelector(`.qr-card[data-ticker="${ticker}"]`)?.classList.add('selected');
   inp?.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
 // ══════════════════════════════════════════
-// 14. QUICK REFERENCE
+// 11. QUICK REFERENCE
 // ══════════════════════════════════════════
 function renderQuickRef() {
   const container = document.getElementById('quick-ref');
   const countEl   = document.getElementById('qr-count');
-  const q         = (document.getElementById('qr-search')?.value||'').toLowerCase().trim();
+  const q = (document.getElementById('qr-search')?.value||'').toLowerCase().trim();
   document.getElementById('qr-clear')?.classList.toggle('show', q.length>0);
   let stocks = q ? STOCKS.filter(s=>s.name.toLowerCase().includes(q)||s.ticker.toLowerCase().includes(q)||getSectorLabel(s.sector).toLowerCase().includes(q)) : STOCKS;
-  if(countEl) countEl.textContent = stocks.length+' actions';
-  if(!container) return;
-  if(!stocks.length) { container.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;">Aucune action trouvée</div>`; return; }
+  if (countEl) countEl.textContent = stocks.length+' actions';
+  if (!container) return;
+  if (!stocks.length) { container.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;">Aucune action trouvée</div>`; return; }
   container.innerHTML = stocks.map(s => {
     const up=s.change>=0, susp=s.ticker==='SAM';
     return `
       <div class="qr-card" data-ticker="${s.ticker}" onclick="prefillCalc(${s.price},'${s.ticker}',event)">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-          ${logoHTML(s.ticker,s.domain,s.sector,28)}
+          ${logoHTML(s.ticker, s.sector, 28)}
           <div style="min-width:0;"><div class="qr-ticker">${s.ticker}</div><div class="qr-name">${s.name}</div></div>
         </div>
         <div class="qr-price">${susp?'—':s.price.toLocaleString('fr-FR')+' MAD'}</div>
@@ -635,18 +425,18 @@ function renderQuickRef() {
 function clearQrSearch() { const i=document.getElementById('qr-search'); if(i)i.value=''; renderQuickRef(); }
 
 // ══════════════════════════════════════════
-// 15. DIVIDENDES
+// 12. DIVIDENDES
 // ══════════════════════════════════════════
 function renderDivList() {
   const container = document.getElementById('div-list');
-  if(!container) return;
+  if (!container) return;
   const q=(document.getElementById('div-search')?.value||'').toLowerCase().trim();
   let stocks = q ? STOCKS.filter(s=>s.name.toLowerCase().includes(q)||s.ticker.toLowerCase().includes(q)||getSectorLabel(s.sector).toLowerCase().includes(q)) : [...STOCKS];
   stocks = stocks.filter(s=>s.divYield>0);
-  if(divSortKey==='yield') stocks.sort((a,b)=>yieldAsc?a.divYield-b.divYield:b.divYield-a.divYield);
-  else if(divSortKey==='div')   stocks.sort((a,b)=>b.div-a.div);
-  else if(divSortKey==='price') stocks.sort((a,b)=>b.price-a.price);
-  else if(divSortKey==='name')  stocks.sort((a,b)=>a.name.localeCompare(b.name));
+  if (divSortKey==='yield') stocks.sort((a,b)=>yieldAsc?a.divYield-b.divYield:b.divYield-a.divYield);
+  else if (divSortKey==='div')   stocks.sort((a,b)=>b.div-a.div);
+  else if (divSortKey==='price') stocks.sort((a,b)=>b.price-a.price);
+  else if (divSortKey==='name')  stocks.sort((a,b)=>a.name.localeCompare(b.name));
   const sorted=[...STOCKS].filter(s=>s.divYield>0).sort((a,b)=>b.divYield-a.divYield);
   const highest=sorted[0], lowest=sorted[sorted.length-1];
   const avg=sorted.reduce((a,s)=>a+s.divYield,0)/sorted.length;
@@ -656,7 +446,7 @@ function renderDivList() {
   set('div-avg',    avg.toFixed(2)+'%');
   container.innerHTML=stocks.map(s=>`
     <div class="div-card fade-in" onclick="showStockModal('${s.ticker}')">
-      ${logoHTML(s.ticker,s.domain,s.sector,38)}
+      ${logoHTML(s.ticker, s.sector, 38)}
       <div class="div-info">
         <div class="div-name">${s.name}</div>
         <div class="div-meta"><span>${s.ticker}</span><span>${getSectorLabel(s.sector)}</span><span>${s.price.toLocaleString('fr-FR')} MAD</span></div>
@@ -684,15 +474,15 @@ function sortDiv(key,el) {
 }
 
 // ══════════════════════════════════════════
-// 16. WATCHLIST / PORTFOLIO
+// 13. WATCHLIST / FAVORIS
 // ══════════════════════════════════════════
 function renderWatchlist() {
   const container=document.getElementById('watchlist-container');
   const countEl=document.getElementById('fav-count');
-  if(!container) return;
-  if(countEl) countEl.textContent=watchlist.size;
+  if (!container) return;
+  if (countEl) countEl.textContent=watchlist.size;
   const favs=STOCKS.filter(s=>watchlist.has(s.ticker));
-  if(!favs.length) {
+  if (!favs.length) {
     container.innerHTML=`<div class="fav-empty"><div style="font-size:40px;margin-bottom:12px;">⭐</div><div class="fav-empty-text">Aucun favori pour l'instant</div><div class="fav-empty-sub">Appuyez sur l'étoile ☆ sur n'importe quelle action</div></div>`;
     return;
   }
@@ -702,7 +492,7 @@ function renderWatchlist() {
       <div class="fav-card fade-in">
         <div class="fav-card-glow ${up?'glow-green':'glow-red'}"></div>
         <div class="fav-card-inner" onclick="showStockModal('${s.ticker}')">
-          ${logoHTML(s.ticker,s.domain,s.sector,38)}
+          ${logoHTML(s.ticker, s.sector, 38)}
           <div class="fav-card-info">
             <div class="fav-card-name">${s.name}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;">
@@ -725,29 +515,26 @@ function renderWatchlist() {
 }
 
 // ══════════════════════════════════════════
-// 17. STOCK MODAL
+// 14. STOCK MODAL
 // ══════════════════════════════════════════
 function showStockModal(ticker) {
   const s=STOCKS.find(x=>x.ticker===ticker);
-  if(!s) return;
+  if (!s) return;
   const up=s.change>=0, el=id=>document.getElementById(id);
   const avEl=el('modal-avatar');
-  if(avEl) {
-    avEl.className='modal-avatar';
+  if (avEl) {
     const bg=AVATAR_BG[s.sector]||'15803d';
     const letters=s.ticker.replace(/[^A-Z0-9]/g,'').slice(0,3)||s.ticker.slice(0,2).toUpperCase();
-    const avatarUrl=`https://ui-avatars.com/api/?name=${encodeURIComponent(letters)}&background=${bg}&color=ffffff&size=192&bold=true&font-size=0.4`;
-    const logoUrl=LOGO_URLS[s.ticker];
-    const realTag=logoUrl?`<img src="${logoUrl}" class="company-logo modal-logo real-logo" alt="${s.ticker}" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px;" onload="swapToRealLogo(this)" onerror="this.remove()">`:'';
-    avEl.innerHTML=`<img src="${avatarUrl}" class="company-logo modal-logo avatar-visible" alt="${s.ticker}">${realTag}`;
+    const url=`https://ui-avatars.com/api/?name=${encodeURIComponent(letters)}&background=${bg}&color=ffffff&size=192&bold=true&font-size=0.4`;
+    avEl.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;" alt="${s.ticker}">`;
   }
-  if(el('modal-name'))   el('modal-name').textContent   = s.name;
-  if(el('modal-ticker')) el('modal-ticker').textContent = s.ticker+' · '+getSectorLabel(s.sector);
-  if(el('modal-price'))  el('modal-price').textContent  = s.price>0?s.price.toLocaleString('fr-FR')+' MAD':'Suspendu';
+  if (el('modal-name'))   el('modal-name').textContent   = s.name;
+  if (el('modal-ticker')) el('modal-ticker').textContent = s.ticker+' · '+getSectorLabel(s.sector);
+  if (el('modal-price'))  el('modal-price').textContent  = s.price>0?s.price.toLocaleString('fr-FR')+' MAD':'Suspendu';
   const chEl=el('modal-change');
-  if(chEl){chEl.className='stock-change '+(up?'up':'down');chEl.innerHTML=s.change!==0?`<span class="arrow-icon">${up?'▲':'▼'}</span> ${Math.abs(s.change).toFixed(2)}%`:'—';chEl.style.justifyContent='flex-end';}
+  if (chEl){chEl.className='stock-change '+(up?'up':'down');chEl.innerHTML=s.change!==0?`<span class="arrow-icon">${up?'▲':'▼'}</span> ${Math.abs(s.change).toFixed(2)}%`:'—';chEl.style.justifyContent='flex-end';}
   const stEl=el('modal-stats');
-  if(stEl) stEl.innerHTML=[
+  if (stEl) stEl.innerHTML=[
     ['VOLUME',s.vol],['YTD',s.ytd!==0?(s.ytd>0?'+':'')+s.ytd+'%':'—'],
     ['CAPITALISATION',s.cap!=='—'?s.cap+' MAD':'—'],
     ['DIVIDENDE',s.div>0?s.div+' MAD ('+s.divYield.toFixed(2)+'%)':'—'],
@@ -756,11 +543,9 @@ function showStockModal(ticker) {
   el('stock-modal')?.classList.add('open');
 }
 function closeModal(e) { if(e&&e.target.id==='stock-modal') document.getElementById('stock-modal')?.classList.remove('open'); }
-function showLoginModal() { document.getElementById('login-modal')?.classList.add('open'); }
-function closeLoginModal(e) { if(e&&e.target.id==='login-modal') document.getElementById('login-modal')?.classList.remove('open'); }
 
 // ══════════════════════════════════════════
-// 18. THEME + PERSISTENCE
+// 15. THEME
 // ══════════════════════════════════════════
 function toggleTheme() {
   isLight = !isLight;
@@ -780,7 +565,7 @@ function loadTheme() {
 }
 
 // ══════════════════════════════════════════
-// 19. MARKET TIMER
+// 16. MARKET TIMER
 // Bourse de Casablanca: Mon–Fri 09:30–15:30 Rabat (UTC+1)
 // ══════════════════════════════════════════
 function updateMarketTimer() {
@@ -818,17 +603,17 @@ function updateMarketTimer() {
 }
 
 // ══════════════════════════════════════════
-// 20. TOAST
+// 17. TOAST
 // ══════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
-  if(!t) return;
+  if (!t) return;
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
 // ══════════════════════════════════════════
-// 21. SWIPE
+// 18. SWIPE
 // ══════════════════════════════════════════
 function setupSwipe() {
   let sx=0, sy=0, dragging=false;
@@ -843,16 +628,11 @@ function setupSwipe() {
 }
 
 // ══════════════════════════════════════════
-// 22. INIT
+// 19. INIT
 // ══════════════════════════════════════════
-async function initApp() {
-  // 1. Apply saved theme immediately
+function initApp() {
   loadTheme();
-
-  // 2. Load local watchlist (fast, no network)
-  loadWatchlistLocal();
-
-  // 3. Render with static data immediately (instant UI)
+  loadWatchlist();
   applyFilter();
   renderWatchlist();
   searchStocks();
@@ -861,11 +641,21 @@ async function initApp() {
   updateMarketTimer();
   setInterval(updateMarketTimer, 30000);
 
-  // 4. Setup auth listener (async, non-blocking)
-  setupAuth();
-
-  // 5. Load live data from Supabase (async, replaces static)
-  await loadLiveData();
+  // ── Hook: replace static data with your live API ──────────────
+  // Uncomment and adapt this block when your backend is ready:
+  //
+  // fetch('/api/stocks')
+  //   .then(r => r.json())
+  //   .then(data => {
+  //     // data should be an array matching the STOCKS shape above
+  //     STOCKS.length = 0;
+  //     STOCKS.push(...data);
+  //     applyFilter();
+  //     renderDivList();
+  //     renderWatchlist();
+  //     searchStocks();
+  //   })
+  //   .catch(err => console.warn('API unavailable, using static data:', err));
 }
 
 document.readyState === 'loading'

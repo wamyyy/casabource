@@ -251,6 +251,11 @@ html, body {
   font-size: clamp(24px, 8vw, 32px); font-weight: 800; letter-spacing: -1px; line-height: 1;
   background: linear-gradient(135deg, #fff 0%, var(--green) 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  animation: lightMovement 1s steps(2, end) infinite alternate;
+}
+@keyframes lightMovement {
+  0% { filter: brightness(1); transform: translateY(0); }
+  100% { filter: brightness(1.2) drop-shadow(0px 0px 2px rgba(255,255,255,0.2)); transform: translateY(-0.5px); }
 }
 .masi-change { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 .change-neg { color: var(--red); }
@@ -259,6 +264,53 @@ html, body {
 .mini-chart { width: 100%; height: 48px; margin-top: 12px; }
 .mini-chart svg { width: 100%; height: 100%; }
 .arrow-icon { font-size: 0.75em; font-style: normal; line-height: 1; }
+
+/* 1. Animation dyal l-khat (SOP) */
+.path-animate {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawLine 2s ease-out forwards;
+  will-change: stroke-dashoffset;
+}
+
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+/* 2. Animation dyal l-gradient (SOP) */
+.area-animate {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInArea 1.2s ease-out 0.5s forwards;
+  will-change: opacity, transform;
+}
+
+@keyframes fadeInArea {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 3. Animation dyal l-cards (SOP) */
+.stock-row {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.stock-row.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animated-line-light {
+  stroke-dasharray: 60 100;
+  animation: lineLightMove 2s linear infinite;
+  mix-blend-mode: overlay;
+}
+@keyframes lineLightMove {
+  0% { stroke-dashoffset: 160; }
+  100% { stroke-dashoffset: -60; }
+}
 
 /* ── STATS ROW ── */
 .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
@@ -335,7 +387,7 @@ html, body {
 .stock-chart  { width: 50px; height: 28px; flex-shrink: 0; }
 .stock-chart svg { width: 100%; height: 100%; }
 .stock-right  { text-align: right; flex-shrink: 0; }
-.stock-price  { font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.stock-price  { font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; animation: lightMovement 1s steps(2, end) infinite alternate; }
 .stock-change { font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 2px; justify-content: flex-end; margin-top: 2px; }
 .stock-change.up   { color: var(--green); }
 .stock-change.down { color: var(--red); }
@@ -662,3 +714,497 @@ html, body {
   .market-time { display: none; }
   .logo-text { display: none; }
 }
+
+/* ════════════════════════════════════════════
+   PWA — NATIVE APP FEEL
+════════════════════════════════════════════ */
+
+/* Disable pull-to-refresh and prevent overscroll bounce */
+html, body {
+  overscroll-behavior-y: contain;
+}
+
+/* Disable text selection globally except inputs */
+body, .shell, .stock-row, .nav-item, .filter-chip, .tab, .div-card {
+  user-select: none;
+  -webkit-user-select: none;
+}
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Tap highlight already removed in reset — reinforce */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Safe Area Insets (Notch / Home Bar support) ── */
+.header {
+  padding-top: calc(10px + env(safe-area-inset-top));
+}
+.bottom-nav {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+.shell {
+  padding-left:  env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ── Press / Tap Feedback ── */
+.stock-row:active,
+.div-card:active,
+.fav-card:active,
+.qr-card:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+.nav-item:active,
+.filter-chip:active,
+.broker-btn:active,
+.tab:active,
+.div-sort-btn:active {
+  transform: scale(0.93);
+  transition: transform 0.1s ease;
+}
+
+/* ════════════════════════════════════════════
+   PRICE PULSE MICRO-INTERACTION
+   Applied via JS when a stock price updates
+════════════════════════════════════════════ */
+@keyframes priceFlash {
+  0%   { background: var(--green-dim); }
+  50%  { background: rgba(52,211,120,0.25); }
+  100% { background: transparent; }
+}
+@keyframes priceFlashRed {
+  0%   { background: rgba(244,63,94,0.08); }
+  50%  { background: rgba(244,63,94,0.22); }
+  100% { background: transparent; }
+}
+.price-pulse-up   { animation: priceFlash    0.6s ease; border-radius: 4px; }
+.price-pulse-down { animation: priceFlashRed 0.6s ease; border-radius: 4px; }
+
+/* ════════════════════════════════════════════
+   SKELETON LOADING
+════════════════════════════════════════════ */
+@keyframes skeletonShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skel {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--card2) 25%,
+    rgba(255,255,255,0.07) 50%,
+    var(--card2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s infinite linear;
+}
+.skeleton-row {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.skel-rank   { width: 16px;  height: 12px; flex-shrink: 0; }
+.skel-avatar { width: 34px;  height: 34px; border-radius: 9px; flex-shrink: 0; }
+.skel-name   { width: 120px; height: 13px; margin-bottom: 6px; }
+.skel-sector { width: 80px;  height: 10px; }
+.skel-price  { width: 70px;  height: 14px; margin-bottom: 4px; margin-left: auto; }
+.skel-change { width: 50px;  height: 11px; margin-left: auto; }
+
+/* ════════════════════════════════════════════
+   LOGIN SCREEN
+════════════════════════════════════════════ */
+.login-screen {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.5s ease;
+  padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
+}
+.login-screen.visible { opacity: 1; pointer-events: all; }
+.login-screen.hiding  { opacity: 0; pointer-events: none; }
+
+.login-bg-glow {
+  position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(52,211,120,0.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.login-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; width: 100%; max-width: 380px;
+}
+
+/* Logo */
+.login-logo-wrap {
+  position: relative; margin-bottom: 20px;
+}
+.login-logo-icon {
+  width: 80px; height: 80px; border-radius: 24px;
+  background: linear-gradient(135deg, var(--green) 0%, #0fa84e 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; color: #070d0a;
+  box-shadow: 0 0 48px rgba(52,211,120,0.4), 0 0 80px rgba(52,211,120,0.15);
+  animation: logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%, 100% { box-shadow: 0 0 48px rgba(52,211,120,0.4), 0 0 80px rgba(52,211,120,0.15); }
+  50%       { box-shadow: 0 0 64px rgba(52,211,120,0.6), 0 0 100px rgba(52,211,120,0.25); }
+}
+.login-logo-shine {
+  position: absolute; inset: 0; border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.login-brand {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 32px;
+  letter-spacing: -1px; margin-bottom: 8px;
+}
+.login-tagline {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--text2); line-height: 1.6; margin-bottom: 28px;
+}
+
+.login-features {
+  display: flex; flex-direction: column; gap: 10px;
+  width: 100%; margin-bottom: 32px;
+}
+.login-feature {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text2);
+}
+.login-feature svg { color: var(--green); flex-shrink: 0; }
+
+/* Login Button */
+.login-form { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.login-input { 
+  width: 100%; padding: 14px 16px; border-radius: 12px; 
+  background: var(--surface2); border: 1px solid var(--border); 
+  color: var(--text); font-family: 'Syne', sans-serif; font-size: 15px; 
+  outline: none; transition: border-color 0.2s, background 0.2s; 
+}
+.login-input:focus { border-color: var(--green); background: rgba(52,211,120,0.05); }
+
+.login-btn-primary {
+  width: 100%; padding: 16px; border-radius: 14px;
+  background: var(--green); border: none; cursor: pointer;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+  color: #070d0a; transition: transform 0.1s ease, box-shadow 0.2s;
+  box-shadow: 0 0 24px rgba(52,211,120,0.3);
+  margin-top: 4px;
+}
+.login-btn-primary:active { transform: scale(0.95); }
+.login-btn-primary:hover  { box-shadow: 0 0 36px rgba(52,211,120,0.5); }
+
+.login-divider {
+  width: 100%; display: flex; align-items: center; text-align: center; color: var(--text3);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-bottom: 24px;
+}
+.login-divider::before, .login-divider::after {
+  content: ''; flex: 1; border-bottom: 1px solid var(--border);
+}
+.login-divider span { padding: 0 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.login-btn-secondary {
+  width: 100%; padding: 14px 20px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--border); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  font-family: 'Syne', sans-serif; font-weight: 600; font-size: 15px;
+  color: var(--text); transition: transform 0.1s ease, background 0.2s;
+  margin-bottom: 16px;
+}
+.login-btn-secondary:active { transform: scale(0.96); background: var(--surface2); }
+
+.login-skip {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--text3); cursor: pointer; padding: 8px 16px;
+  transition: color 0.2s; text-decoration: underline;
+  text-underline-offset: 3px; margin-bottom: 24px;
+}
+.login-skip:active { color: var(--text2); transform: scale(0.97); }
+
+.login-disclaimer {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--text3); letter-spacing: 0.5px;
+}
+
+/* ════════════════════════════════════════════
+   PORTFOLIO PAGE
+════════════════════════════════════════════ */
+
+/* User card */
+.port-user-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px;
+}
+.port-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green) 0%, #0fa84e 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: #070d0a;
+  flex-shrink: 0;
+}
+.port-user-info { flex: 1; }
+.port-user-name  { font-size: 14px; font-weight: 700; color: var(--text); }
+.port-user-email { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+.port-logout-btn {
+  background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3);
+  color: var(--red); border-radius: 8px; width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: all 0.18s; flex-shrink: 0;
+}
+.port-logout-btn:active { transform: scale(0.88); background: rgba(244,63,94,0.2); }
+
+/* Balance card */
+.port-balance-card {
+  background: linear-gradient(135deg, rgba(52,211,120,0.12) 0%, rgba(15,168,78,0.06) 100%);
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  padding: 22px 20px 16px; margin-bottom: 16px; position: relative; overflow: hidden;
+}
+.port-balance-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+}
+.port-balance-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; color: var(--green); margin-bottom: 8px;
+}
+.port-balance-value {
+  font-family: 'JetBrains Mono', monospace; font-size: clamp(22px, 6vw, 30px);
+  font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 10px;
+}
+.port-pnl-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.port-pnl-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+}
+.port-pnl-badge.up   { background: rgba(52,211,120,0.15); color: var(--green); }
+.port-pnl-badge.down { background: rgba(244,63,94,0.12);  color: var(--red); }
+.port-pnl-amount { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text2); }
+.port-balance-bars {
+  height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-bottom: 8px;
+}
+.port-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--green), var(--accent));
+  border-radius: 2px; transition: width 1s cubic-bezier(0.4,0,0.2,1);
+}
+.port-balance-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3); }
+
+/* Portfolio holding card */
+.port-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 14px 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 8px; cursor: pointer; transition: all 0.18s;
+  position: relative; overflow: hidden;
+}
+.port-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--green); border-radius: 2px 0 0 2px;
+  opacity: 0; transition: opacity 0.2s;
+}
+.port-card:active { transform: scale(0.98); background: var(--card2); }
+.port-card:active::before { opacity: 1; }
+
+.port-card-left  { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.port-card-info  { min-width: 0; }
+.port-card-ticker { font-size: 14px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+.port-card-name   { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.port-card-meta   { display: flex; gap: 5px; margin-top: 4px; font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+.port-card-right  { text-align: right; flex-shrink: 0; }
+.port-card-value  { font-size: 14px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+.port-card-pnl    { font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-top: 3px; display: flex; align-items: center; gap: 3px; justify-content: flex-end; }
+.port-card-pnl.up   { color: var(--green); }
+.port-card-pnl.down { color: var(--red); }
+.port-card-pnl-abs  { font-size: 10px; opacity: 0.75; }
+.port-card-qty    { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+/* Light mode overrides for new elements */
+.light .login-screen { background: var(--bg); }
+.light .login-feature,
+.light .port-user-card,
+.light .port-card { background: var(--card); border-color: var(--border); }
+
+/* ════════════════════════════════════════════
+   GOLD FAB — Add Stock Button
+════════════════════════════════════════════ */
+.port-fab {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 16px auto 24px;
+  padding: 10px 20px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--gold);
+  color: var(--gold); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px;
+  cursor: pointer; user-select: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  max-width: 200px;
+}
+.port-fab:active { transform: scale(0.96); background: var(--gold); color: var(--bg); }
+.port-fab:hover  { background: rgba(245,200,66,0.05); box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
+}
+
+/* ════════════════════════════════════════════
+   ADD STOCK MODAL (Bottom Sheet)
+════════════════════════════════════════════ */
+.add-stock-modal-body {
+  max-height: 90vh; overflow-y: auto;
+  border-top: 1px solid rgba(245,200,66,0.25) !important;
+}
+.add-stock-modal-body::before {
+  content: ''; position: sticky; top: 0; left: 0; right: 0; height: 1px; display: block;
+  background: linear-gradient(90deg, transparent, rgba(245,200,66,0.4), transparent);
+}
+
+.add-stock-header { margin-bottom: 20px; margin-top: 4px; }
+.add-stock-title {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--text);
+  margin-bottom: 4px;
+}
+.add-stock-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); }
+
+/* Search input */
+.add-stock-search-wrap {
+  position: relative; margin-bottom: 8px;
+}
+.add-stock-search-wrap svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; color: var(--text3); pointer-events: none;
+}
+#add-stock-search {
+  width: 100%; padding: 12px 12px 12px 38px; border-radius: 12px;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  outline: none; transition: border-color 0.2s;
+}
+#add-stock-search:focus { border-color: var(--gold); }
+
+/* Search result list */
+.add-stock-results { margin-bottom: 8px; border-radius: 12px; overflow: hidden; }
+.add-stock-result-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; cursor: pointer;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.add-stock-result-item:last-child { border-bottom: none; }
+.add-stock-result-item:active { background: var(--card2); }
+.add-stock-result-info { flex: 1; min-width: 0; }
+.add-stock-result-ticker { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 800; color: var(--text); }
+.add-stock-result-name   { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.add-stock-result-price  { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gold); flex-shrink: 0; }
+
+/* Selected stock badge */
+.add-stock-selected {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(245,200,66,0.08); border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 12px; padding: 10px 14px; margin-bottom: 16px;
+}
+.add-stock-selected-inner { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.add-stock-clear {
+  background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer;
+  line-height: 1; padding: 2px 6px; border-radius: 6px; transition: color 0.2s;
+}
+.add-stock-clear:hover { color: var(--red); }
+
+/* Inputs */
+.add-stock-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+/* Preview card */
+.add-stock-preview {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 16px;
+}
+.add-stock-preview-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+}
+.add-stock-preview-row:last-child { border-bottom: none; }
+
+/* Confirm button */
+.add-stock-confirm {
+  width: 100%; padding: 16px; border-radius: 14px;
+  background: linear-gradient(135deg, #f5c842 0%, #e09c1a 100%);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; color: #1a1000;
+  transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
+  box-shadow: 0 0 20px rgba(245,200,66,0.35); margin-bottom: 12px;
+}
+.add-stock-confirm:not([disabled]):hover { box-shadow: 0 0 30px rgba(245,200,66,0.5); }
+.add-stock-confirm:not([disabled]):active { transform: scale(0.96); }
+.add-stock-confirm[disabled] {
+  opacity: 0.35; cursor: not-allowed;
+  background: var(--card); color: var(--text3); box-shadow: none;
+}
+
+/* Remove position button on port cards */
+.port-remove-btn {
+  background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.2);
+  color: var(--red); border-radius: 8px; width: 28px; height: 28px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.18s; margin-left: 6px;
+}
+/* ════════════════════════════════════════════
+   PERFORMANCE-FRIENDLY ANIMATIONS (Hardware Accelerated)
+════════════════════════════════════════════ */
+
+/* Ambient Breathing Background Glow */
+body::before {
+  content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at 10% 0%, rgba(52,211,120,0.035) 0%, transparent 60%),
+              radial-gradient(circle at 90% 100%, rgba(245,200,66,0.02) 0%, transparent 40%);
+  pointer-events: none; z-index: -1;
+  animation: ambientBreathe 14s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes ambientBreathe {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+/* Staggered Cascade Animation */
+.animate-stagger {
+  opacity: 0;
+  animation: staggerFadeSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+@keyframes staggerFadeSlide {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Nav indicator transition (already existing slightly, making it smoother) */
+.nav-item.active { position: relative; }
+.nav-item.active::after {
+  content: ''; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  width: 24px; height: 3px; border-radius: 0 0 3px 3px;
+  background: var(--green); box-shadow: 0 2px 8px var(--green-glow);
+  animation: navIndicatorIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes navIndicatorIn {
+  from { width: 0; opacity: 0; transform: translateX(-50%) translateY(-2px); }
+  to { width: 24px; opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+
+
